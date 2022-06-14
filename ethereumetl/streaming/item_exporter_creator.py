@@ -88,7 +88,24 @@ def create_item_exporter(output):
             'contract': 'contracts',
             'token': 'tokens',
         })
+    elif item_exporter_type == ItemExporterType.MYSQL or item_exporter_type == ItemExporterType.MARIADB:
+        from blockchainetl.jobs.exporters.mysql_item_exporter import MySQLItemExporter
+        from blockchainetl.streaming.mysql_utils import create_insert_statement_for_table
+        from blockchainetl.jobs.exporters.converters.unix_timestamp_item_converter import UnixTimestampItemConverter
+        from blockchainetl.jobs.exporters.converters.int_to_decimal_item_converter import IntToDecimalItemConverter
+        from blockchainetl.jobs.exporters.converters.list_field_item_converter import ListFieldItemConverter
+        from ethereumetl.streaming.mysql_tables import BLOCKS, TRANSACTIONS, LOGS, TOKEN_TRANSFERS
 
+        item_exporter = MySQLItemExporter(
+            output, item_type_to_insert_stmt_mapping={
+                'block': create_insert_statement_for_table(BLOCKS),
+                'transaction': create_insert_statement_for_table(TRANSACTIONS),
+                'log': create_insert_statement_for_table(LOGS),
+                'token_transfer': create_insert_statement_for_table(TOKEN_TRANSFERS),
+            },
+            converters=[UnixTimestampItemConverter(), IntToDecimalItemConverter(),
+                        ListFieldItemConverter('topics', 'topic', fill=4)])
+    
     else:
         raise ValueError('Unable to determine item exporter type for output ' + output)
 
@@ -117,6 +134,10 @@ def determine_item_exporter_type(output):
         return ItemExporterType.GCS
     elif output is None or output == 'console':
         return ItemExporterType.CONSOLE
+    elif output is not None and output.startswith('mysql'):
+        return ItemExporterType.MYSQL
+    elif output is not None and output.startswith('mariadb'):
+        return ItemExporterType.MARIADB
     else:
         return ItemExporterType.UNKNOWN
 
@@ -128,3 +149,6 @@ class ItemExporterType:
     CONSOLE = 'console'
     KAFKA = 'kafka'
     UNKNOWN = 'unknown'
+    MYSQL = 'mysql'
+    MARIADB = 'mariadb'
+
