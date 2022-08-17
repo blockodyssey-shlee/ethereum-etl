@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from datetime import datetime, timedelta
+
 import collections
 from unittest import result
 
@@ -50,6 +52,7 @@ class MySQLItemExporter:
                 connection = self.engine.connect()
                 converted_items = list(self.convert_items(item_group))
                 converted_items = convert_column_name(converted_items)
+                converted_items = modify_time(converted_items)
                 converted_items = upper_column_name(converted_items)
                 connection.execute(insert_stmt, converted_items)
 
@@ -80,6 +83,17 @@ def convert_column_name(items):
             item['block_hash'] = item.pop('hash')
         elif item.get('type') == 'transaction':
             item['transaction_hash'] = item.pop('hash')
+
+    return items
+
+def modify_time(items):
+    for item in items:
+        UTC_time = datetime.strptime(item.get('block_timestamp'), '%Y-%m-%d %H:%M:%S')
+        KST_time = UTC_time + timedelta(hours=9)
+        item['block_timestamp'] = KST_time.timestamp()
+
+        KST_time_str = KST_time.strftime('%Y-%m-%d %H:%M:%S')
+        item['block_localtime'] = KST_time_str
 
     return items
 

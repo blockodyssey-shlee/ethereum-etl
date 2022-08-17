@@ -29,7 +29,8 @@ metadata = MetaData()
 
 BLOCKS = Table(
     'BLOCKS', metadata,
-    Column('BLOCK_TIMESTAMP', TIMESTAMP),
+    Column('BLOCK_TIMESTAMP', BigInteger),
+    Column('BLOCK_LOCALTIME', TIMESTAMP),
     Column('BLOCK_NUMBER', BigInteger),
     Column('BLOCK_HASH', String, primary_key=True),
     Column('PARENT_HASH', String),
@@ -108,7 +109,8 @@ TOKEN_TRANSFERS = Table(
 
 # TABLE SCHEMA
 # CREATE TABLE BLOCKS (
-#     `BLOCK_TIMESTAMP` TIMESTAMP NOT NULL,
+#     `BLOCK_TIMESTAMP` NUMERIC(38,0) NOT NULL,
+#     `BLOCK_LOCALTIME` TIMESTAMP NOT NULL,
 #     `BLOCK_NUMBER` INT(8) NOT NULL,
 #     `BLOCK_HASH` VARCHAR(66) NOT NULL,
 #     `PARENT_HASH` VARCHAR(66),
